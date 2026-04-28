@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.dao.ProductMapper">
+
+    <resultMap id="productMap" type="Product">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="price" column="price"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="description" column="description"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="status" column="status"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <association property="category" javaType="Category">
+            <id property="id" column="category_id"/>
+            <result property="categoryName" column="category_name"/>
+        </association>
+        <association property="seller" javaType="User">
+            <id property="id" column="user_id"/>
+            <result property="nickname" column="nickname"/>
+            <result property="phone" column="phone"/>
+            <result property="email" column="email"/>
+        </association>
+    </resultMap>
+
+    <select id="findList" resultMap="productMap">
+        SELECT p.*, c.category_name, u.nickname, u.phone, u.email
+        FROM t_product p
+        LEFT JOIN t_category c ON p.category_id = c.id
+        LEFT JOIN t_user u ON p.user_id = u.id
+        <where>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+            <if test="categoryId != null and categoryId != 0">
+                AND p.category_id = #{categoryId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.name LIKE CONCAT('%', #{keyword}, '%') 
+                OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="findById" resultMap="productMap">
+        SELECT p.*, c.category_name, u.nickname, u.phone, u.email
+        FROM t_product p
+        LEFT JOIN t_category c ON p.category_id = c.id
+        LEFT JOIN t_user u ON p.user_id = u.id
+        WHERE p.id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_product (name, price, image_url, description, category_id, user_id, status)
+        VALUES (#{name}, #{price}, #{imageUrl}, #{description}, #{categoryId}, #{userId}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE t_product
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM t_product WHERE id = #{id}
+    </delete>
+
+    <update id="increaseViewCount">
+        UPDATE t_product SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE t_product SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <select id="findByUserId" resultMap="productMap">
+        SELECT p.*, c.category_name
+        FROM t_product p
+        LEFT JOIN t_category c ON p.category_id = c.id
+        WHERE p.user_id = #{userId}
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="findHotProducts" resultMap="productMap">
+        SELECT p.*, c.category_name, u.nickname
+        FROM t_product p
+        LEFT JOIN t_category c ON p.category_id = c.id
+        LEFT JOIN t_user u ON p.user_id = u.id
+        WHERE p.status = 0
+        ORDER BY p.view_count DESC, p.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM t_product
+        <where>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="categoryId != null and categoryId != 0">
+                AND category_id = #{categoryId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%') 
+                OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+</mapper>
+
+
+
