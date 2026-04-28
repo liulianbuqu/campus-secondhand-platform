@@ -30,5 +30,8 @@ Thumbs.db
 # Upload files
 upload/
 
+# Local config (do not commit secrets)
+src/main/resources/db.properties
+
 
 
