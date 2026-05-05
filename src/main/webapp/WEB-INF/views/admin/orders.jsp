@@ -37,7 +37,7 @@
                         <td>${order.orderNo}</td>
                         <td>
                             <img src="${order.product.imageUrl}" style="width: 50px; height: 50px; object-fit: cover;"
-                                 onerror="this.src='https://via.placeholder.com/50'">
+                                 onerror="this.onerror=null;this.src='/static/img/placeholder.svg';">
                             ${order.product.name}
                         </td>
                         <td>${order.buyer.nickname}</td>
