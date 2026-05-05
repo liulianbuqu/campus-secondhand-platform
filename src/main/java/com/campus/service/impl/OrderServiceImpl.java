@@ -33,6 +33,11 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("商品不存在或已售出");
         }
 
+        // 安全校验：买家不能购买自己的商品（Service 层也做校验，防止绕过 Controller）
+        if (product.getUserId().equals(order.getUserId())) {
+            throw new RuntimeException("不能购买自己的商品");
+        }
+
         // 生成订单号
         order.setOrderNo(UUID.randomUUID().toString().replace("-", ""));
         order.setStatus(0); // 待处理
@@ -71,6 +76,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Double getTotalAmount() {
         return orderMapper.getTotalAmount();
+    }
+
+    @Override
+    public int count() {
+        return orderMapper.count();
     }
 
     @Override

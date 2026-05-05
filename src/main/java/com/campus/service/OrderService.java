@@ -38,6 +38,11 @@ public interface OrderService {
     Double getTotalAmount();
 
     /**
+     * 统计订单总数
+     */
+    int count();
+
+    /**
      * 根据ID查询订单
      */
     Order findById(Integer id);

@@ -34,6 +34,11 @@ public interface UserService {
     List<User> findAll();
 
     /**
+     * 统计用户总数
+     */
+    int count();
+
+    /**
      * 更新用户状态
      */
     boolean updateStatus(Integer id, Integer status);
