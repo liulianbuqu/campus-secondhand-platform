@@ -7,6 +7,7 @@ import com.campus.util.MD5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -57,6 +58,12 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
+        // 更新登录时间和在线状态
+        Date now = new Date();
+        userMapper.updateLoginInfo(user.getId(), now, 1);
+        user.setLastLoginTime(now);
+        user.setOnlineStatus(1);
+
         return user;
     }
 
@@ -73,6 +80,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAll() {
         return userMapper.findAll();
+    }
+
+    @Override
+    public int count() {
+        return userMapper.count();
     }
 
     @Override
