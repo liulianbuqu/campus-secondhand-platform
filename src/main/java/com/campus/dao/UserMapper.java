@@ -35,6 +35,16 @@ public interface UserMapper {
     List<User> findAll();
 
     /**
+     * 统计用户总数
+     */
+    int count();
+
+    /**
+     * 更新用户登录时间和在线状态
+     */
+    int updateLoginInfo(@Param("id") Integer id, @Param("lastLoginTime") java.util.Date lastLoginTime, @Param("onlineStatus") Integer onlineStatus);
+
+    /**
      * 更新用户状态
      */
     int updateStatus(@Param("id") Integer id, @Param("status") Integer status);

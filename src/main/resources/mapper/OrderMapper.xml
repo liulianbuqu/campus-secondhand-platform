@@ -75,6 +75,10 @@
         SELECT COALESCE(SUM(total_price), 0) FROM t_order WHERE status = 1
     </select>
 
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM t_order
+    </select>
+
 </mapper>
 
 
