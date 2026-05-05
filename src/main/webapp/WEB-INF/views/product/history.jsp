@@ -33,7 +33,7 @@
                             <div class="card card-ui h-100">
                                 <a href="${ctx}/product/detail?id=${product.id}">
                                     <img src="${product.imageUrl}" class="card-img-top product-image" 
-                                         alt="${product.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                                         alt="${product.name}" onerror="this.onerror=null;this.src='${ctx}/static/img/placeholder.svg';">
                                 </a>
                                 <div class="card-body">
                                     <c:if test="${product.category != null}">

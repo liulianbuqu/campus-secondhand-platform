@@ -94,7 +94,7 @@
                 <div class="order-body">
                     <a href="${ctx}/product/detail?id=${order.productId}">
                         <img src="${order.product.imageUrl}" class="product-img" alt="${order.product.name}"
-                             onerror="this.src='https://via.placeholder.com/80?text=No+Image'">
+                             onerror="this.onerror=null;this.src='${ctx}/static/img/placeholder.svg';">
                     </a>
                     <div class="product-info">
                         <h6 class="mb-1">

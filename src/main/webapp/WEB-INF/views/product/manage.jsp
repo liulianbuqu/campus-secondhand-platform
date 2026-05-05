@@ -38,7 +38,7 @@
                     <tr>
                         <td>
                             <img src="${product.imageUrl}" style="width: 80px; height: 80px; object-fit: cover;"
-                                 onerror="this.src='https://via.placeholder.com/80'">
+                                 onerror="this.onerror=null;this.src='/static/img/placeholder.svg';">
                         </td>
                         <td>${product.name}</td>
                         <td>¥${product.price}</td>

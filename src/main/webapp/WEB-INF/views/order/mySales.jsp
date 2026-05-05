@@ -97,7 +97,7 @@
                 </div>
                 <div class="order-body">
                     <img src="${order.product.imageUrl}" class="product-img" alt="${order.product.name}"
-                         onerror="this.src='https://via.placeholder.com/80?text=No+Image'">
+                         onerror="this.onerror=null;this.src='${ctx}/static/img/placeholder.svg';">
                     <div class="product-info">
                         <h6 class="mb-1">${order.product.name}</h6>
                         <p class="text-muted mb-1">买家：${order.buyer.nickname}</p>
