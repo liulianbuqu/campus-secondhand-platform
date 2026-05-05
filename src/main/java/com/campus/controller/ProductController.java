@@ -6,10 +6,9 @@ import com.campus.entity.User;
 import com.campus.service.CategoryService;
 import com.campus.service.ProductService;
 import com.campus.service.RecommendService;
-import com.campus.util.FileUploadUtil;
+import com.campus.util.MinIOUtil;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,8 +38,8 @@ public class ProductController {
     @Autowired
     private RecommendService recommendService;
 
-    @Value("${upload.path}")
-    private String uploadPath;
+    @Autowired
+    private MinIOUtil minIOUtil;
 
     /**
      * 商品列表页
@@ -66,13 +65,14 @@ public class ProductController {
     /**
      * 商品详情页
      * 技术亮点：记录浏览历史 + 相似商品推荐
+     * 优化：只查询一次数据库，increaseViewCount 内部通过 SQL 自增，无需重新查询
      */
     @RequestMapping("/detail")
     public String detail(Integer id, Model model, HttpSession session) {
         Product product = productService.findById(id);
         if (product != null) {
-            productService.increaseViewCount(id); // 增加浏览量
-            product = productService.findById(id); // 重新查询获取最新浏览量
+            productService.increaseViewCount(id); // 增加浏览量（SQL 层自增，无需重新查询）
+            product.setViewCount(product.getViewCount() + 1); // 本地 +1，避免重复查询
 
             // 记录浏览历史（用于个性化推荐）
             User user = (User) session.getAttribute("user");
@@ -111,9 +111,9 @@ public class ProductController {
             User user = (User) session.getAttribute("user");
             product.setUserId(user.getId());
 
-            // 上传图片
+            // 上传图片到 MinIO（多实例共享）
             if (imageFile != null && !imageFile.isEmpty()) {
-                String imageUrl = FileUploadUtil.upload(imageFile, uploadPath);
+                String imageUrl = minIOUtil.upload(imageFile);
                 product.setImageUrl(imageUrl);
             }
 
@@ -147,7 +147,7 @@ public class ProductController {
         Map<String, Object> result = new HashMap<>();
         try {
             if (imageFile != null && !imageFile.isEmpty()) {
-                String imageUrl = FileUploadUtil.upload(imageFile, uploadPath);
+                String imageUrl = minIOUtil.upload(imageFile);
                 product.setImageUrl(imageUrl);
             }
             boolean success = productService.update(product);
