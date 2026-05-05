@@ -13,6 +13,8 @@
         <result property="role" column="role"/>
         <result property="status" column="status"/>
         <result property="createTime" column="create_time"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="onlineStatus" column="online_status"/>
     </resultMap>
 
     <select id="findByUsername" resultMap="userMap">
@@ -41,6 +43,14 @@
     <select id="findAll" resultMap="userMap">
         SELECT * FROM t_user ORDER BY create_time DESC
     </select>
+
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM t_user
+    </select>
+
+    <update id="updateLoginInfo">
+        UPDATE t_user SET last_login_time = #{lastLoginTime}, online_status = #{onlineStatus} WHERE id = #{id}
+    </update>
 
     <update id="updateStatus">
         UPDATE t_user SET status = #{status} WHERE id = #{id}

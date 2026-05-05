@@ -48,6 +48,11 @@ public interface OrderMapper {
      * 统计总交易额
      */
     Double getTotalAmount();
+
+    /**
+     * 统计订单总数
+     */
+    int count();
 }
 
 
