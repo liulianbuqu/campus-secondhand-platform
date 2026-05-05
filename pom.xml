@@ -23,7 +23,7 @@
         <mysql.version>8.0.33</mysql.version>
         <druid.version>1.2.16</druid.version>
         <pagehelper.version>5.3.1</pagehelper.version>
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <jstl.version>1.2</jstl.version>
         <jsp-api.version>2.2</jsp-api.version>
@@ -197,11 +197,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.11.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
+                    <fork>true</fork>
                 </configuration>
             </plugin>
             <plugin>
