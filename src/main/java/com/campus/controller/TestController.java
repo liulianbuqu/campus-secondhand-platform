@@ -1,6 +1,8 @@
 package com.campus.controller;
 
 import com.campus.config.MinIOConfig;
+import com.campus.entity.Product;
+import com.campus.service.RecommendService;
 import io.minio.MinioClient;
 import io.minio.ListObjectsArgs;
 import io.minio.Result;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +46,9 @@ public class TestController {
 
     @Autowired(required = false)
     private MinIOConfig minIOConfig;
+
+    @Autowired(required = false)
+    private RecommendService recommendService;
 
     /**
      * 测试 Redis 连接
@@ -129,7 +135,7 @@ public class TestController {
                     Iterable<Result<Item>> objects = minioClient.listObjects(
                             ListObjectsArgs.builder().bucket(bucketName).build());
                     int count = 0;
-                    for (Result<Item> itemResult : objects) {
+                    for (@SuppressWarnings("unused") Result<Item> item : objects) {
                         count++;
                     }
                     result.put("fileCount", count);
@@ -143,6 +149,85 @@ public class TestController {
             result.put("message", "MinIO 连接失败: " + e.getMessage());
             log.error("MinIO 测试失败", e);
         }
+        return result;
+    }
+
+    /**
+     * 成员1-阶段2：模拟浏览行为，测试分布式锁+缓存更新。
+     */
+    @GetMapping("/recommend/record")
+    @ResponseBody
+    public Map<String, Object> testRecord(Integer userId, Integer productId) {
+        Map<String, Object> result = new HashMap<>();
+        if (recommendService == null) {
+            result.put("success", false);
+            result.put("message", "RecommendService 未注入");
+            return result;
+        }
+        if (userId == null || productId == null) {
+            result.put("success", false);
+            result.put("message", "请传 userId 和 productId");
+            return result;
+        }
+        recommendService.recordBrowseHistory(userId, productId);
+        result.put("success", true);
+        result.put("message", "浏览记录写入成功");
+        result.put("userId", userId);
+        result.put("productId", productId);
+        return result;
+    }
+
+    /**
+     * 成员1-阶段2：读取推荐结果，触发画像缓存重建。
+     */
+    @GetMapping("/recommend/list")
+    @ResponseBody
+    public Map<String, Object> testRecommend(Integer userId, Integer limit) {
+        Map<String, Object> result = new HashMap<>();
+        if (recommendService == null) {
+            result.put("success", false);
+            result.put("message", "RecommendService 未注入");
+            return result;
+        }
+        if (userId == null) {
+            result.put("success", false);
+            result.put("message", "请传 userId");
+            return result;
+        }
+        int safeLimit = (limit == null || limit <= 0) ? 5 : limit;
+        List<Product> data = recommendService.getPersonalizedRecommendations(userId, safeLimit);
+        result.put("success", true);
+        result.put("count", data.size());
+        result.put("data", data);
+        return result;
+    }
+
+    /**
+     * 成员1-阶段2：查看 Redis 中的画像和历史缓存。
+     */
+    @GetMapping("/recommend/cache")
+    @ResponseBody
+    public Map<String, Object> testRecommendCache(Integer userId) {
+        Map<String, Object> result = new HashMap<>();
+        if (redisTemplate == null) {
+            result.put("success", false);
+            result.put("message", "RedisTemplate 未注入");
+            return result;
+        }
+        if (userId == null) {
+            result.put("success", false);
+            result.put("message", "请传 userId");
+            return result;
+        }
+        String profileKey = "rec:profile:" + userId;
+        String historyKey = "rec:history:" + userId;
+        result.put("success", true);
+        result.put("profileKey", profileKey);
+        result.put("profile", redisTemplate.opsForHash().entries(profileKey));
+        result.put("profileTTL", redisTemplate.getExpire(profileKey));
+        result.put("historyKey", historyKey);
+        result.put("history", redisTemplate.opsForList().range(historyKey, 0, 20));
+        result.put("historyTTL", redisTemplate.getExpire(historyKey));
         return result;
     }
 }

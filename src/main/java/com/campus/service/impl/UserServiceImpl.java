@@ -4,6 +4,8 @@ import com.campus.dao.UserMapper;
 import com.campus.entity.User;
 import com.campus.service.UserService;
 import com.campus.util.MD5Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,7 @@ import java.util.List;
  */
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -58,11 +61,15 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
-        // 更新登录时间和在线状态
+        // 更新登录时间和在线状态（非核心流程，失败不应阻断登录）
         Date now = new Date();
-        userMapper.updateLoginInfo(user.getId(), now, 1);
-        user.setLastLoginTime(now);
-        user.setOnlineStatus(1);
+        try {
+            userMapper.updateLoginInfo(user.getId(), now, 1);
+            user.setLastLoginTime(now);
+            user.setOnlineStatus(1);
+        } catch (Exception ex) {
+            logger.warn("更新登录时间失败，忽略并继续登录，userId={}", user.getId(), ex);
+        }
 
         return user;
     }

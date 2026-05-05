@@ -2,12 +2,14 @@ package com.campus.entity;
 
 import lombok.Data;
 import java.util.Date;
+import java.io.Serializable;
 
 /**
  * 用户实体类
  */
 @Data
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Integer id;
     private String username;
     private String password;

@@ -61,7 +61,7 @@
                                     <input type="text" name="captcha" class="form-control" 
                                            placeholder="请输入验证码" maxlength="4" required>
                                     <img id="captchaImg" class="captcha-img" 
-                                         src="${ctx}/captcha/image" 
+                                         src="${ctx}/captcha/image?t=<%=System.currentTimeMillis()%>" 
                                          onclick="refreshCaptcha()" 
                                          title="点击刷新验证码">
                                 </div>
@@ -142,10 +142,7 @@
             });
         });
 
-        // 页面加载时刷新验证码
-        $(document).ready(function() {
-            refreshCaptcha();
-        });
+        // 页面初始验证码已带时间戳，不再额外刷新，避免覆盖用户看到的验证码
     </script>
 </body>
 </html>

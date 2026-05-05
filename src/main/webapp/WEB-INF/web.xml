@@ -51,6 +51,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- Spring Session 过滤器：将 HttpSession 委托到 Redis -->
+    <filter>
+        <filter-name>springSessionRepositoryFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>springSessionRepositoryFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- Druid 数据源监控页面配置 -->
     <!-- 技术亮点：Druid 内置 SQL 监控、慢查询统计、连接池监控 -->
     <servlet>

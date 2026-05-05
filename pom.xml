@@ -23,7 +23,7 @@
         <mysql.version>8.0.33</mysql.version>
         <druid.version>1.2.16</druid.version>
         <pagehelper.version>5.3.1</pagehelper.version>
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <jstl.version>1.2</jstl.version>
         <jsp-api.version>2.2</jsp-api.version>
@@ -237,6 +237,15 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
+                    <proc>full</proc>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <fork>true</fork>
                 </configuration>
             </plugin>
             <plugin>

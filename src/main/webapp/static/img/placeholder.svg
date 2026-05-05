@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <rect width="640" height="480" fill="#f3f4f6"/>
+  <rect x="190" y="120" width="260" height="190" rx="14" fill="#d1d5db"/>
+  <circle cx="270" cy="190" r="24" fill="#9ca3af"/>
+  <path d="M220 285l60-62 42 40 28-30 74 72H220z" fill="#9ca3af"/>
+  <text x="320" y="370" text-anchor="middle" font-size="26" fill="#6b7280" font-family="Arial, sans-serif">
+    No Image
+  </text>
+</svg>
