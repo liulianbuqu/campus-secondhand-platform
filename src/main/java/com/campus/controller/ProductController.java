@@ -6,9 +6,13 @@ import com.campus.entity.User;
 import com.campus.service.CategoryService;
 import com.campus.service.ProductService;
 import com.campus.service.RecommendService;
+import com.campus.util.FileUploadUtil;
 import com.campus.util.MinIOUtil;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +32,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/product")
 public class ProductController {
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private ProductService productService;
@@ -40,6 +45,9 @@ public class ProductController {
 
     @Autowired
     private MinIOUtil minIOUtil;
+    
+    @Value("${upload.path:D:/upload/}")
+    private String uploadPath;
 
     /**
      * 商品列表页
@@ -113,7 +121,7 @@ public class ProductController {
 
             // 上传图片到 MinIO（多实例共享）
             if (imageFile != null && !imageFile.isEmpty()) {
-                String imageUrl = minIOUtil.upload(imageFile);
+                String imageUrl = uploadImageWithFallback(imageFile);
                 product.setImageUrl(imageUrl);
             }
 
@@ -147,7 +155,7 @@ public class ProductController {
         Map<String, Object> result = new HashMap<>();
         try {
             if (imageFile != null && !imageFile.isEmpty()) {
-                String imageUrl = minIOUtil.upload(imageFile);
+                String imageUrl = uploadImageWithFallback(imageFile);
                 product.setImageUrl(imageUrl);
             }
             boolean success = productService.update(product);
@@ -160,15 +168,68 @@ public class ProductController {
     }
 
     /**
+     * 先尝试 MinIO，失败则自动回退到本地文件上传。
+     */
+    private String uploadImageWithFallback(MultipartFile imageFile) {
+        try {
+            return minIOUtil.upload(imageFile);
+        } catch (Exception minioEx) {
+            logger.warn("MinIO 上传失败，回退本地上传: {}", minioEx.getMessage());
+            try {
+                return FileUploadUtil.upload(imageFile, uploadPath);
+            } catch (Exception localEx) {
+                throw new RuntimeException("图片上传失败，请检查存储配置", localEx);
+            }
+        }
+    }
+
+    /**
      * 删除商品
      */
     @Log("删除商品")
     @RequestMapping("/delete")
     @ResponseBody
-    public Map<String, Object> delete(Integer id) {
+    public Map<String, Object> delete(Integer id, HttpSession session) {
         Map<String, Object> result = new HashMap<>();
-        boolean success = productService.delete(id);
-        result.put("success", success);
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            result.put("success", false);
+            result.put("message", "登录已失效，请重新登录");
+            return result;
+        }
+        if (id == null) {
+            result.put("success", false);
+            result.put("message", "商品ID不能为空");
+            return result;
+        }
+
+        Product product = productService.findById(id);
+        if (product == null) {
+            result.put("success", false);
+            result.put("message", "商品不存在或已删除");
+            return result;
+        }
+        if (product.getUserId() == null || !product.getUserId().equals(user.getId())) {
+            result.put("success", false);
+            result.put("message", "无权限删除该商品");
+            return result;
+        }
+
+        try {
+            boolean success = productService.delete(id);
+            result.put("success", success);
+            if (!success) {
+                result.put("message", "删除失败，请刷新后重试");
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage() == null ? "" : e.getMessage();
+            if (errorMsg.contains("foreign key constraint fails") || errorMsg.contains("Cannot delete or update a parent row")) {
+                result.put("message", "该商品已有订单记录，不能直接删除，请先下架保留记录");
+            } else {
+                result.put("message", "删除失败：" + errorMsg);
+            }
+            result.put("success", false);
+        }
         return result;
     }
 

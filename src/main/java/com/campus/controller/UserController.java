@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
+import java.util.Iterator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 用户控制器
@@ -90,7 +93,7 @@ public class UserController {
         if (user != null) {
             session.setAttribute("user", user);
             result.put("success", true);
-            result.put("isAdmin", user.getRole() == 2);
+            result.put("isAdmin", Objects.equals(user.getRole(), 2));
         } else {
             result.put("success", false);
             result.put("message", "用户名或密码错误");
@@ -106,23 +109,58 @@ public class UserController {
             return false;
         }
 
-        String sessionCaptcha = (String) session.getAttribute("captcha");
-        Long captchaTime = (Long) session.getAttribute("captchaTime");
+        String normalizedInput = inputCaptcha.trim().toLowerCase();
+        long now = System.currentTimeMillis();
+
+        // 优先使用验证码缓存（支持最近几次验证码）
+        LinkedHashMap<String, Long> captchaCache = readCaptchaCache(session.getAttribute("captchaCache"));
+        if (!captchaCache.isEmpty()) {
+            boolean hit = false;
+
+            Iterator<Map.Entry<String, Long>> iterator = captchaCache.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Long> entry = iterator.next();
+                String code = entry.getKey();
+                Long createTime = entry.getValue();
+                boolean expired = createTime == null || now - createTime > CAPTCHA_EXPIRE_TIME;
+                if (expired) {
+                    iterator.remove();
+                    continue;
+                }
+                if (!hit && code != null && code.equals(normalizedInput)) {
+                    hit = true;
+                    // 一次性使用，命中后立即删除
+                    iterator.remove();
+                }
+            }
+            session.setAttribute("captchaCache", captchaCache);
+            if (hit) {
+                session.removeAttribute("captcha");
+                session.removeAttribute("captchaTime");
+                return true;
+            }
+        }
+
+        // 兼容旧逻辑（只保留一个验证码）
+        Object captchaObj = session.getAttribute("captcha");
+        Object captchaTimeObj = session.getAttribute("captchaTime");
+        String sessionCaptcha = captchaObj == null ? null : String.valueOf(captchaObj).toLowerCase();
+        Long captchaTime = parseCaptchaTime(captchaTimeObj);
 
         // 验证码不存在
-        if (sessionCaptcha == null || captchaTime == null) {
+        if (sessionCaptcha == null || sessionCaptcha.isEmpty() || captchaTime == null) {
             return false;
         }
 
         // 验证码已过期
-        if (System.currentTimeMillis() - captchaTime > CAPTCHA_EXPIRE_TIME) {
+        if (now - captchaTime > CAPTCHA_EXPIRE_TIME) {
             session.removeAttribute("captcha");
             session.removeAttribute("captchaTime");
             return false;
         }
 
         // 校验验证码（忽略大小写）
-        boolean valid = sessionCaptcha.equalsIgnoreCase(inputCaptcha.trim());
+        boolean valid = sessionCaptcha.equals(normalizedInput);
 
         // 验证成功后清除验证码（一次性使用）
         if (valid) {
@@ -131,6 +169,35 @@ public class UserController {
         }
 
         return valid;
+    }
+
+    private Long parseCaptchaTime(Object captchaTimeObj) {
+        if (captchaTimeObj == null) {
+            return null;
+        }
+        if (captchaTimeObj instanceof Number) {
+            return ((Number) captchaTimeObj).longValue();
+        }
+        try {
+            return Long.parseLong(String.valueOf(captchaTimeObj));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private LinkedHashMap<String, Long> readCaptchaCache(Object cacheObj) {
+        LinkedHashMap<String, Long> result = new LinkedHashMap<>();
+        if (!(cacheObj instanceof Map)) {
+            return result;
+        }
+        Map<?, ?> rawMap = (Map<?, ?>) cacheObj;
+        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+            if (entry.getKey() == null || !(entry.getValue() instanceof Number)) {
+                continue;
+            }
+            result.put(String.valueOf(entry.getKey()).toLowerCase(), ((Number) entry.getValue()).longValue());
+        }
+        return result;
     }
 
     /**

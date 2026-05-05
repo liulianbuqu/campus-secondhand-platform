@@ -89,7 +89,7 @@
                             <span class="status-badge badge badge-warning px-3 py-2">已下架</span>
                         </c:if>
                         <img src="${product.imageUrl}" class="card-img-top product-main-img p-3"
-                             alt="${product.name}" onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
+                             alt="${product.name}" onerror="this.onerror=null;this.src='${ctx}/static/img/placeholder.svg';">
                     </div>
                 </div>
 
@@ -185,7 +185,7 @@
                                 <div class="card similar-card h-100">
                                     <a href="${ctx}/product/detail?id=${sp.id}">
                                         <img src="${sp.imageUrl}" class="card-img-top similar-img" 
-                                             alt="${sp.name}" onerror="this.src='https://via.placeholder.com/200x150?text=No+Image'">
+                                             alt="${sp.name}" onerror="this.onerror=null;this.src='${ctx}/static/img/placeholder.svg';">
                                     </a>
                                     <div class="card-body p-3">
                                         <h6 class="card-title product-title mb-2">

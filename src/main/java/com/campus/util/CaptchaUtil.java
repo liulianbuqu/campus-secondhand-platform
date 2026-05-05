@@ -18,13 +18,13 @@ import java.util.Random;
  */
 public class CaptchaUtil {
     
-    // 验证码字符集（去除易混淆字符：0O1lI）
-    private static final String CHARS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz";
+    // 验证码字符集：使用纯数字提升可读性，减少误判
+    private static final String CHARS = "23456789";
     
     private static final int WIDTH = 120;      // 图片宽度
     private static final int HEIGHT = 40;      // 图片高度
     private static final int CODE_LENGTH = 4;  // 验证码长度
-    private static final int LINE_COUNT = 6;   // 干扰线数量
+    private static final int LINE_COUNT = 3;   // 干扰线数量
     
     private static final Random random = new Random();
 
@@ -60,10 +60,10 @@ public class CaptchaUtil {
         g.setColor(new Color(200, 200, 200));
         g.drawRect(0, 0, WIDTH - 1, HEIGHT - 1);
 
-        // 绘制干扰线
+        // 绘制少量干扰线
         for (int i = 0; i < LINE_COUNT; i++) {
             g.setColor(randomColor(150, 200));
-            g.setStroke(new BasicStroke(1.5f));
+            g.setStroke(new BasicStroke(1.0f));
             int x1 = random.nextInt(WIDTH);
             int y1 = random.nextInt(HEIGHT);
             int x2 = random.nextInt(WIDTH);
@@ -71,8 +71,8 @@ public class CaptchaUtil {
             g.drawLine(x1, y1, x2, y2);
         }
 
-        // 添加噪点
-        for (int i = 0; i < 30; i++) {
+        // 添加少量噪点
+        for (int i = 0; i < 12; i++) {
             g.setColor(randomColor(130, 180));
             int x = random.nextInt(WIDTH);
             int y = random.nextInt(HEIGHT);
@@ -80,21 +80,13 @@ public class CaptchaUtil {
         }
 
         // 绘制验证码字符
-        g.setFont(new Font("Arial", Font.BOLD, 28));
+        g.setFont(new Font("Arial", Font.BOLD, 30));
         int charWidth = (WIDTH - 20) / CODE_LENGTH;
         for (int i = 0; i < code.length(); i++) {
             g.setColor(randomColor(20, 130));
-            
-            // 随机旋转角度
-            double theta = Math.toRadians(random.nextInt(30) - 15);
             int x = 10 + i * charWidth;
-            int y = 28 + random.nextInt(6);
-            
-            // 保存当前变换状态
-            g.rotate(theta, x + charWidth / 2.0, HEIGHT / 2.0);
+            int y = 30 + random.nextInt(3);
             g.drawString(String.valueOf(code.charAt(i)), x, y);
-            // 恢复变换状态
-            g.rotate(-theta, x + charWidth / 2.0, HEIGHT / 2.0);
         }
 
         g.dispose();

@@ -110,8 +110,11 @@
                         if (result.success) {
                             location.reload();
                         } else {
-                            alert('删除失败');
+                            alert(result.message || '删除失败');
                         }
+                    },
+                    error: function() {
+                        alert('删除请求失败，请稍后重试');
                     }
                 });
             }
