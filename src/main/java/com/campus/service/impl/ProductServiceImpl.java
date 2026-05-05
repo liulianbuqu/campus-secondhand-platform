@@ -5,6 +5,8 @@ import com.campus.entity.Product;
 import com.campus.service.ProductService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,8 @@ import java.util.List;
  */
 @Service
 public class ProductServiceImpl implements ProductService {
+    private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private static final int STATUS_DELETED = 3;
 
     @Autowired
     private ProductMapper productMapper;
@@ -52,7 +56,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public boolean delete(Integer id) {
-        return productMapper.delete(id) > 0;
+        try {
+            // 优先物理删除（无订单引用时）
+            return productMapper.delete(id) > 0;
+        } catch (Exception ex) {
+            // 若被外键拦截（已有订单），自动逻辑删除：标记为已删除
+            logger.warn("商品物理删除失败，降级为逻辑删除，productId={}", id, ex);
+            return productMapper.updateStatus(id, STATUS_DELETED) > 0;
+        }
     }
 
     @Override

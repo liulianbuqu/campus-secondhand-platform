@@ -36,6 +36,9 @@
             <if test="status != null">
                 AND p.status = #{status}
             </if>
+            <if test="status == null">
+                AND p.status != 3
+            </if>
             <if test="categoryId != null and categoryId != 0">
                 AND p.category_id = #{categoryId}
             </if>
@@ -90,6 +93,7 @@
         FROM t_product p
         LEFT JOIN t_category c ON p.category_id = c.id
         WHERE p.user_id = #{userId}
+          AND p.status != 3
         ORDER BY p.create_time DESC
     </select>
 
