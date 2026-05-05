@@ -38,10 +38,10 @@ public class AdminController {
      */
     @RequestMapping("/index")
     public String index(Model model) {
-        // 统计数据
-        model.addAttribute("userCount", userService.findAll().size());
+        // 统计数据（使用 COUNT 聚合查询，避免全表查询）
+        model.addAttribute("userCount", userService.count());
         model.addAttribute("totalAmount", orderService.getTotalAmount());
-        model.addAttribute("orderCount", orderService.findAll().size());
+        model.addAttribute("orderCount", orderService.count());
         return "admin/index";
     }
 
