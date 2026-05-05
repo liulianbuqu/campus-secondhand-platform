@@ -79,6 +79,20 @@
                     } else {
                         alert(result.message || '发布失败');
                     }
+                },
+                error: function(xhr) {
+                    var msg = '发布失败，请稍后重试';
+                    try {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                    } catch (e) {
+                        // ignore json parse error
+                    }
+                    alert(msg);
+                    if (xhr.status === 401) {
+                        window.location.href = '${ctx}/user/loginPage';
+                    }
                 }
             });
         });
