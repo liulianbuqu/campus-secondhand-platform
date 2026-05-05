@@ -17,6 +17,8 @@ public class User {
     private Integer role; // 1-普通用户，2-管理员
     private Integer status; // 1-正常，0-冻结
     private Date createTime;
+    private Date lastLoginTime;  // 最近登录时间
+    private Integer onlineStatus; // 在线状态：0-离线，1-在线
 }
 
 
