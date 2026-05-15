@@ -9,15 +9,16 @@ USE secondhand_market;
 CREATE TABLE t_user (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
-    password VARCHAR(100) NOT NULL COMMENT '密码（MD5加密）',
-    nickname VARCHAR(50) COMMENT '昵称（可选，默认使用用户名）',
+    password VARCHAR(100) NOT NULL COMMENT '密码(MD5加密)',
+    nickname VARCHAR(50) COMMENT '昵称(可选,默认使用用户名)',
     phone VARCHAR(20) COMMENT '手机号',
     email VARCHAR(100) COMMENT '邮箱',
-    role INT DEFAULT 1 COMMENT '角色：1-普通用户，2-管理员',
-    status INT DEFAULT 1 COMMENT '状态：1-正常，0-冻结',
+    role INT DEFAULT 1 COMMENT '角色:1-普通用户,2-管理员',
+    status INT DEFAULT 1 COMMENT '状态:1-正常,0-冻结',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
 
 -- 分类表
 CREATE TABLE t_category (
