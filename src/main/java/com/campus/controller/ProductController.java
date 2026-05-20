@@ -7,6 +7,7 @@ import com.campus.service.CategoryService;
 import com.campus.service.ProductFeatureService;
 import com.campus.service.ProductService;
 import com.campus.service.DegradeService;
+import com.campus.service.EnhancedRecommendService;
 import com.campus.service.RecommendService;
 import com.campus.service.UserProfileService;
 import com.campus.util.FileUploadUtil;
@@ -59,6 +60,9 @@ public class ProductController {
 
     @Autowired
     private MinIOUtil minIOUtil;
+
+    @Autowired
+    private EnhancedRecommendService enhancedRecommendService;
     
     @Value("${upload.path:D:/upload/}")
     private String uploadPath;
@@ -121,9 +125,18 @@ public class ProductController {
                 }
             }
 
-            // 获取相似商品推荐
-            List<Product> similarProducts = recommendService.getSimilarProducts(id, 4);
+            // 获取相似商品推荐（增强版：多因子评分）
+            List<Product> similarProducts;
+            List<Map<String, Object>> similarDetails = null;
+            try {
+                similarProducts = enhancedRecommendService.getSimilarProductsEnhanced(id, 4);
+                similarDetails = enhancedRecommendService.getSimilarProductsWithDetail(id, 4);
+            } catch (Exception e) {
+                logger.warn("增强推荐失败，降级使用原始推荐: {}", e.getMessage());
+                similarProducts = recommendService.getSimilarProducts(id, 4);
+            }
             model.addAttribute("similarProducts", similarProducts);
+            model.addAttribute("similarDetails", similarDetails);
         }
         model.addAttribute("product", product);
         return "product/detail";

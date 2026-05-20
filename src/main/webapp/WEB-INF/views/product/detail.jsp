@@ -172,15 +172,15 @@
                 </div>
             </div>
 
-            <!-- 相似商品推荐 -->
+            <!-- 相似商品推荐（增强版） -->
             <c:if test="${not empty similarProducts}">
                 <div class="mt-5">
                     <h5 class="section-title">
-                        💡 相似商品推荐
-                        <small class="text-muted font-weight-normal ml-2">基于分类的智能推荐</small>
+                        🎯 相似商品推荐
+                        <small class="text-muted font-weight-normal ml-2">基于多因子评分的内容过滤算法</small>
                     </h5>
                     <div class="row">
-                        <c:forEach items="${similarProducts}" var="sp">
+                        <c:forEach items="${similarProducts}" var="sp" varStatus="status">
                             <div class="col-md-3 mb-3">
                                 <div class="card similar-card h-100">
                                     <a href="${ctx}/product/detail?id=${sp.id}">
@@ -193,10 +193,28 @@
                                                 ${sp.name}
                                             </a>
                                         </h6>
-                                        <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="price">¥${sp.price}</span>
-                                            <small class="text-muted">浏览 ${sp.viewCount}</small>
+                                            <small class="text-muted">👁 ${sp.viewCount}</small>
                                         </div>
+                                        <!-- 评分明细 -->
+                                        <c:if test="${not empty similarDetails && status.index < similarDetails.size()}">
+                                            <c:set var="sd" value="${similarDetails[status.index]}" />
+                                            <div class="similarity-bar mt-2" style="font-size:0.75rem;">
+                                                <div class="d-flex justify-content-between text-muted mb-1">
+                                                    <span>综合匹配</span>
+                                                    <span class="font-weight-bold text-primary">
+                                                        <fmt:formatNumber value="${sd.totalScore}" type="number" pattern="0.0%" />
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height:4px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                                         style="width:${sd.totalScore * 100}%;" 
+                                                         aria-valuenow="${sd.totalScore * 100}" aria-valuemin="0" aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </c:if>
                                     </div>
                                 </div>
                             </div>

@@ -2,10 +2,13 @@ package com.campus.controller;
 
 import com.campus.config.MinIOConfig;
 import com.campus.entity.Product;
+import com.campus.dao.ProductMapper;
 import com.campus.service.DegradeService;
 import com.campus.service.IndexService;
 import com.campus.service.MetricsService;
+import com.campus.service.ProductFeatureService;
 import com.campus.service.RecommendService;
+import com.campus.service.UserProfileService;
 import io.minio.MinioClient;
 import io.minio.ListObjectsArgs;
 import io.minio.Result;
@@ -61,6 +64,15 @@ public class TestController {
 
     @Autowired(required = false)
     private IndexService indexService;
+
+    @Autowired(required = false)
+    private UserProfileService userProfileService;
+
+    @Autowired(required = false)
+    private ProductFeatureService productFeatureService;
+
+    @Autowired(required = false)
+    private ProductMapper productMapper;
 
     /**
      * 测试 Redis 连接
@@ -217,6 +229,53 @@ public class TestController {
         result.put("success", true);
         result.put("count", data.size());
         result.put("data", data);
+        return result;
+    }
+
+    /**
+     * 成员A：记录浏览并同步更新 UserProfileService 画像
+     */
+    @GetMapping("/profile/record")
+    @ResponseBody
+    public Map<String, Object> testProfileRecord(Integer userId, Integer productId) {
+        Map<String, Object> result = new HashMap<>();
+        if (userId == null || productId == null) {
+            result.put("success", false);
+            result.put("message", "请传 userId 和 productId");
+            return result;
+        }
+        // 1. 更新 RecommendService 的浏览历史
+        if (recommendService != null) {
+            recommendService.recordBrowseHistory(userId, productId);
+        }
+        // 2. 更新 UserProfileService 的画像
+        if (userProfileService != null && productFeatureService != null && productMapper != null) {
+            try {
+                Product product = productMapper.findById(productId);
+                if (product != null) {
+                    List<String> keywords = productFeatureService.extractKeywords(
+                            product.getName() != null ? product.getName() : "");
+                    userProfileService.recordBrowse(
+                            userId,
+                            product.getCategoryId(),
+                            product.getPrice() != null ? product.getPrice().doubleValue() : null,
+                            keywords
+                    );
+                    result.put("profileUpdated", true);
+                } else {
+                    result.put("profileUpdated", false);
+                    result.put("error", "商品不存在");
+                }
+            } catch (Exception e) {
+                log.warn("更新画像失败: {}", e.getMessage());
+                result.put("profileUpdated", false);
+                result.put("error", e.getMessage());
+            }
+        }
+        result.put("success", true);
+        result.put("message", "浏览记录+画像更新完成");
+        result.put("userId", userId);
+        result.put("productId", productId);
         return result;
     }
 
